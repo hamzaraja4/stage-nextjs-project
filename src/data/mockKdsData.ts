@@ -1,0 +1,43 @@
+import { PatientTrayItem } from "../types/kds";
+
+export const MOCK_PATIENT_TRAYS: PatientTrayItem[] = [
+  {
+    id: "tray-1",
+    patientName: "Amine TAZI",
+    room: "Chirurgie 101-A",
+    service: "Chirurgie",
+    ipp: "2026-9812",
+    dietName: "Régime Normal",
+    dietDotColor: "bg-[#3A618B]",
+    badgeType: "qr",
+    badgeLabel: "Badge Scellé QR",
+    badgeIcon: "qr_code_scanner",
+  },
+  {
+    id: "tray-2",
+    patientName: "Youssef EL AMRI",
+    room: "Chirurgie 104-B",
+    service: "Chirurgie",
+    ipp: "2026-9492",
+    dietName: "À JEUN / BLOQUÉ",
+    dietDotColor: "bg-[#BA1A1A]",
+    badgeType: "fasting_blocked",
+    badgeLabel: "À JEUN / PLATEAU BLOQUÉ",
+    badgeIcon: "no_meals",
+    isFastingBlocked: true,
+    blockedReason: "Intervention programmée. Aucune distribution autorisée.",
+  },
+  {
+    id: "tray-3",
+    patientName: "Khadija BENJELLOUN",
+    room: "Médecine 208-A",
+    service: "Médecine",
+    ipp: "2026-8831",
+    dietName: "Sans Sel Strict",
+    dietDotColor: "bg-[#002F4B]",
+    badgeType: "companion",
+    badgeLabel: "+1 Accompagnant",
+    badgeIcon: "group",
+    hasCompanion: true,
+  },
+];

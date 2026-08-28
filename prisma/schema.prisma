@@ -1,0 +1,257 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoleType {
+  CHEF_CUISINE
+  SOIGNANT_ETAGE
+  AGENT_CAISSE
+  DIRECTION_QUALITE
+}
+
+enum TrayStatus {
+  PREPARATION
+  SCELLE_QR
+  A_JEUN_BLOQUE
+  PRET_DEPART
+  EN_DISTRIBUTION
+  LIVRE_CONFORME
+  DISCORDANCE
+}
+
+enum CartStatus {
+  PREPARATION
+  CONTROLE_EN_COURS
+  SCELLE_VALIDE
+  EN_DISTRIBUTION
+  TERMINE
+}
+
+enum PurchaseOrderStatus {
+  GENERE
+  TRANSMIS
+  RECU
+}
+
+model Role {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  type      RoleType
+  users     User[]
+  createdAt DateTime  @default(now())
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  roleId    String
+  role      Role      @relation(fields: [roleId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ServiceUnit {
+  id        String    @id @default(cuid())
+  code      String    @unique // chirurgie, medecine, maternite
+  name      String    // Chirurgie, Médecine Interne, Maternité
+  floor     String    // Étage 1, Étage 2, Étage 3
+  rooms     Room[]
+  patients  Patient[]
+  carts     Cart[]
+}
+
+model Room {
+  id            String       @id @default(cuid())
+  number        String       // 101, 104, 208, 302
+  serviceUnitId String
+  serviceUnit   ServiceUnit  @relation(fields: [serviceUnitId], references: [id])
+  beds          Bed[]
+}
+
+model Bed {
+  id        String    @id @default(cuid())
+  code      String    // A, B
+  roomId    String
+  room      Room      @relation(fields: [roomId], references: [id])
+  patients  Patient[]
+}
+
+model Diet {
+  id          String    @id @default(cuid())
+  code        String    @unique // normal, diabetique, sans-sel, mixe, post-partum
+  name        String
+  texture     String    // Normale, Sans sucre, Lisse
+  description String?
+  patients    Patient[]
+  trays       Tray[]
+}
+
+model Patient {
+  id            String       @id @default(cuid())
+  ipp           String       @unique // 2026-9812
+  firstName     String
+  lastName      String
+  serviceUnitId String
+  serviceUnit   ServiceUnit  @relation(fields: [serviceUnitId], references: [id])
+  bedId         String
+  bed           Bed          @relation(fields: [bedId], references: [id])
+  dietId        String
+  diet          Diet         @relation(fields: [dietId], references: [id])
+  isAJeun       Boolean      @default(false)
+  aJeunReason   String?
+  trays         Tray[]
+  auditLogs     AuditLog[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Tray {
+  id                String       @id @default(cuid())
+  patientId         String
+  patient           Patient      @relation(fields: [patientId], references: [id])
+  dietId            String
+  diet              Diet         @relation(fields: [dietId], references: [id])
+  qrToken           String       @unique // 9812-7A
+  status            TrayStatus   @default(PREPARATION)
+  mealService       String       // Dejeuner
+  starter           String?
+  mainCourse        String?
+  sideDish          String?
+  dessert           String?
+  allergens         String?      @default("Aucun")
+  isExtraAccompagnant Boolean    @default(false)
+  extraDescription  String?
+  isBlocked         Boolean      @default(false)
+  cartId            String?
+  cart              Cart?        @relation(fields: [cartId], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model Cart {
+  id            String       @id @default(cuid())
+  code          String       @unique // ISO-01, ISO-02
+  serviceUnitId String
+  serviceUnit   ServiceUnit  @relation(fields: [serviceUnitId], references: [id])
+  traysCount    Int          @default(0)
+  tempHot       Float        // 66.4
+  tempCold      Float        // 2.8
+  status        CartStatus   @default(PREPARATION)
+  scannedBy     String?      // Agent Omar
+  departureTime DateTime?
+  trays         Tray[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model EmergencyFridge {
+  id             String    @id @default(cuid())
+  name           String    // Frigo Relais Urgences / Chirurgie
+  service        String
+  capacityTrays  Int       @default(4)
+  capacitySnacks Int       @default(4)
+  availableTrays Int       @default(4)
+  lastConsumedAt DateTime?
+  lastConsumedInfo String? // Ch. 109 à 23:14
+  updatedAt      DateTime  @updatedAt
+}
+
+model AuditLog {
+  id           String    @id @default(cuid())
+  timestamp    DateTime  @default(now())
+  patientId    String?
+  patient      Patient?  @relation(fields: [patientId], references: [id])
+  patientName  String
+  ipp          String
+  location     String
+  agentName    String
+  mealType     String
+  scanResult   String    // Conforme
+  scanDuration String    // 320ms
+  status       String    // Certifié
+}
+
+model StaffMember {
+  id           String           @id @default(cuid())
+  name         String           // Dr. Mehdi ALAMI
+  role         String           // Chirurgien
+  matricule    String           @unique // RH-4091
+  balance      Float            @default(145.00) // Solde MAD
+  transactions PosTransaction[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model PosArticle {
+  id           String           @id @default(cuid())
+  name         String
+  subtitle     String
+  price        Float
+  icon         String
+  isNightShift Boolean          @default(false)
+  transactions PosTransaction[]
+}
+
+model PosTransaction {
+  id            String       @id @default(cuid())
+  staffMemberId String
+  staffMember   StaffMember  @relation(fields: [staffMemberId], references: [id])
+  articleId     String
+  article       PosArticle   @relation(fields: [articleId], references: [id])
+  amount        Float
+  createdAt     DateTime     @default(now())
+}
+
+model StockItem {
+  id             String    @id @default(cuid())
+  name           String    // Pavé de Saumon Frais 140g
+  physicalStock  Float     // 4.20
+  unit           String    // Kg, Unités
+  thresholdStock Float     // 15.00
+  dlc            DateTime  // 21/08/2026
+  statusAlert    String    // BC Généré Auto, Seuil Atteint, Confortable
+  updatedAt      DateTime  @updatedAt
+}
+
+model PurchaseOrder {
+  id           String              @id @default(cuid())
+  code         String              @unique // BC-2026-0891
+  supplier     String              // Marée Atlantique SARL
+  itemDetails  String              // Pavé Saumon (Qté : 25 Kg arrondis)
+  amount       Float?              // 2850.00
+  status       PurchaseOrderStatus @default(GENERE)
+  createdAt    DateTime            @default(now())
+}
+
+model ColdRoom {
+  id           String    @id @default(cuid())
+  name         String    // Chambre Froide Positive #1
+  type         String    // Positive, Négative
+  temperature  Float     // +2.8, -19.4
+  normMin      Float
+  normMax      Float
+  lastCheckAt  DateTime  @default(now())
+  sensorType   String    @default("Sonde IoT Clinique")
+}
+
+model SampleMeal {
+  id          String    @id @default(cuid())
+  mealService String    // Déjeuner J (Mercredi)
+  content     String    // Saumon / Volaille / Velouté
+  sampledDate DateTime  @default(now())
+  daysLeft    Int       @default(7)
+  isSealed    Boolean   @default(true)
+}
+
+model HotTempLog {
+  id           String    @id @default(cuid())
+  dishOrDevice String    // Cuisson Saumon Four Vapeur
+  temperature  Float     // +72.0
+  isCompliant  Boolean   @default(true)
+  recordedAt   DateTime  @default(now())
+}
