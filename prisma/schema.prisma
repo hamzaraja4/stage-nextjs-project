@@ -3,44 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
-enum RoleType {
-  CHEF_CUISINE
-  SOIGNANT_ETAGE
-  AGENT_CAISSE
-  DIRECTION_QUALITE
-}
-
-enum TrayStatus {
-  PREPARATION
-  SCELLE_QR
-  A_JEUN_BLOQUE
-  PRET_DEPART
-  EN_DISTRIBUTION
-  LIVRE_CONFORME
-  DISCORDANCE
-}
-
-enum CartStatus {
-  PREPARATION
-  CONTROLE_EN_COURS
-  SCELLE_VALIDE
-  EN_DISTRIBUTION
-  TERMINE
-}
-
-enum PurchaseOrderStatus {
-  GENERE
-  TRANSMIS
-  RECU
+  provider = "sqlite"
 }
 
 model Role {
   id        String    @id @default(cuid())
   name      String    @unique
-  type      RoleType
+  type      String
   users     User[]
   createdAt DateTime  @default(now())
 }
@@ -89,6 +58,7 @@ model Diet {
   description String?
   patients    Patient[]
   trays       Tray[]
+  productionRuns ProductionRun[]
 }
 
 model Patient {
@@ -117,7 +87,7 @@ model Tray {
   dietId            String
   diet              Diet         @relation(fields: [dietId], references: [id])
   qrToken           String       @unique // 9812-7A
-  status            TrayStatus   @default(PREPARATION)
+  status            String       @default("PREPARATION")
   mealService       String       // Dejeuner
   starter           String?
   mainCourse        String?
@@ -133,6 +103,19 @@ model Tray {
   updatedAt         DateTime     @updatedAt
 }
 
+model ProductionRun {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  mealService    String
+  dietId         String
+  diet           Diet     @relation(fields: [dietId], references: [id])
+  quantity       Int
+  status         String   @default("PLANIFIEE")
+  productionDate DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model Cart {
   id            String       @id @default(cuid())
   code          String       @unique // ISO-01, ISO-02
@@ -141,7 +124,7 @@ model Cart {
   traysCount    Int          @default(0)
   tempHot       Float        // 66.4
   tempCold      Float        // 2.8
-  status        CartStatus   @default(PREPARATION)
+  status        String       @default("PREPARATION")
   scannedBy     String?      // Agent Omar
   departureTime DateTime?
   trays         Tray[]
@@ -151,7 +134,7 @@ model Cart {
 
 model EmergencyFridge {
   id             String    @id @default(cuid())
-  name           String    // Frigo Relais Urgences / Chirurgie
+  name           String    @unique // Frigo Relais Urgences / Chirurgie
   service        String
   capacityTrays  Int       @default(4)
   capacitySnacks Int       @default(4)
@@ -224,7 +207,7 @@ model PurchaseOrder {
   supplier     String              // Marée Atlantique SARL
   itemDetails  String              // Pavé Saumon (Qté : 25 Kg arrondis)
   amount       Float?              // 2850.00
-  status       PurchaseOrderStatus @default(GENERE)
+  status       String              @default("GENERE")
   createdAt    DateTime            @default(now())
 }
 

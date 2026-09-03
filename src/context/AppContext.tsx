@@ -48,6 +48,7 @@ interface AppContextType {
 
   // POS State
   posBalance: number;
+  setPosBalance: (amount: number) => void;
   rechargePosBalance: (amount: number) => void;
   debitPosBalance: (amount: number) => boolean;
 
@@ -104,7 +105,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [qrModal, setQrModal] = useState<QRModalData | null>(null);
   const [isMiseAJeunModalOpen, setIsMiseAJeunModalOpen] = useState(false);
   const [simulatedRole, setSimulatedRole] = useState("chef");
-  const [posBalance, setPosBalance] = useState(145.0);
+  const [posBalance, setPosBalanceState] = useState(145.0);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>(initialAuditLogs);
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
@@ -126,12 +127,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const closeMiseAJeunModal = () => setIsMiseAJeunModalOpen(false);
 
   const rechargePosBalance = (amount: number) => {
-    setPosBalance((prev) => prev + amount);
+    setPosBalanceState((prev) => prev + amount);
   };
+
+  const setPosBalance = (amount: number) => setPosBalanceState(amount);
 
   const debitPosBalance = (amount: number) => {
     if (posBalance >= amount) {
-      setPosBalance((prev) => prev - amount);
+      setPosBalanceState((prev) => prev - amount);
       return true;
     }
     return false;
@@ -160,6 +163,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         simulatedRole,
         setSimulatedRole,
         posBalance,
+        setPosBalance,
         rechargePosBalance,
         debitPosBalance,
         auditLogs,

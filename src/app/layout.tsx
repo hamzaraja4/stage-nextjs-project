@@ -6,6 +6,8 @@ import { Header } from "@/components/layout/Header";
 import { AJeunAlertStrip } from "@/components/common/AJeunAlertStrip";
 import { QRPreviewModal } from "@/components/common/QRPreviewModal";
 import { MiseAJeunModal } from "@/components/common/MiseAJeunModal";
+import { ToastProvider } from "@/context/ToastContext";
+import { ToastContainer } from "@/components/common/ToastContainer";
 
 export const metadata: Metadata = {
   title: "Restauration | Maquette Interactive des Vues & Interfaces",
@@ -28,6 +30,7 @@ export default function RootLayout({
       </head>
       <body className="bg-slate-50 text-slate-800 antialiased h-screen flex overflow-hidden font-sans">
         <AppProvider>
+          <ToastProvider>
           {/* Sidebar Rétractable */}
           <Sidebar />
 
@@ -48,6 +51,8 @@ export default function RootLayout({
           {/* Global Modals */}
           <QRPreviewModal />
           <MiseAJeunModal />
+          <ToastContainer />
+          </ToastProvider>
         </AppProvider>
       </body>
     </html>

@@ -41,6 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+*.db
+*.db-journal
 
 # IDE & AI Assistant configs
 .agents/

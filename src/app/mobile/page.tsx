@@ -2,45 +2,95 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function MobilePage() {
   const { addAuditLog } = useApp();
+  const { showToast } = useToast();
   const [scanStep, setScanStep] = useState<number>(0); // 0: initial, 1: patient scanned, 2: tray scanned
   const [showError, setShowError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isScanning, setIsScanning] = useState(false);
 
   const handleScanPatient = () => {
     setScanStep(1);
     setShowError(false);
   };
 
-  const handleScanTray = () => {
+  const handleScanTray = async () => {
     if (scanStep !== 1) return;
-    setScanStep(2);
+    setIsScanning(true);
     setShowError(false);
-
-    const now = new Date();
-    const timeStr = now.toTimeString().split(" ")[0];
-    addAuditLog({
-      id: String(Date.now()),
-      time: timeStr,
-      patient: "Amine TAZI",
-      ipp: "2026-9812",
-      location: "Chirurgie • Ch. 101 Lit A",
-      agent: "Inf. Fatima Zahra (Mobile)",
-      mealType: "Déjeuner Normal",
-      scanResult: "Conforme",
-      scanDuration: "180ms",
-      status: "Certifié",
-    });
+    try {
+      const response = await fetch("/api/mobile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "VERIFY_DOUBLE_SCAN",
+          patientIpp: "2026-9812",
+          trayToken: "9812-7A",
+          agentName: "Inf. Fatima Zahra (Mobile)",
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setErrorMessage(data.error || "La validation du double scan a échoué.");
+        setShowError(true);
+        showToast("error", "Distribution refusée", data.error);
+        return;
+      }
+      setScanStep(2);
+      if (data.auditEntry) {
+        const entry = data.auditEntry;
+        addAuditLog({
+          id: entry.id,
+          time: new Date(entry.timestamp).toTimeString().split(" ")[0],
+          patient: entry.patientName,
+          ipp: entry.ipp,
+          location: entry.location,
+          agent: entry.agentName,
+          mealType: entry.mealType,
+          scanResult: entry.scanResult,
+          scanDuration: entry.scanDuration,
+          status: "Certifié",
+        });
+      }
+      showToast("success", "Distribution certifiée", "Le double scan a été enregistré dans l’audit.");
+    } catch {
+      setErrorMessage("Le serveur est indisponible. Réessayez dans quelques instants.");
+      setShowError(true);
+      showToast("error", "Scan impossible", "La connexion au serveur a échoué.");
+    } finally {
+      setIsScanning(false);
+    }
   };
 
-  const handleScanFraudMismatch = () => {
+  const handleScanFraudMismatch = async () => {
+    setIsScanning(true);
     setScanStep(0);
-    setErrorMessage(
-      "ERREUR : Le plateau n° #8831-2B (Sans Sel) ne correspond pas au patient scanné (Amine TAZI - Normal) ! ALARME ÉMISE."
-    );
-    setShowError(true);
+    try {
+      const response = await fetch("/api/mobile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "VERIFY_DOUBLE_SCAN",
+          patientIpp: "2026-9812",
+          trayToken: "8831-2B",
+          agentName: "Inf. Fatima Zahra (Mobile)",
+          isSimulatedMismatch: true,
+        }),
+      });
+      const data = await response.json();
+      setErrorMessage(data.error || "Discordance détectée.");
+      setShowError(true);
+      showToast("warning", "Discordance enregistrée", "L’alerte anti-fraude a été ajoutée à l’audit.");
+    } catch {
+      setErrorMessage("Le serveur est indisponible. Réessayez dans quelques instants.");
+      setShowError(true);
+      showToast("error", "Alerte non enregistrée", "La connexion au serveur a échoué.");
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const handleReset = () => {
@@ -179,7 +229,7 @@ export default function MobilePage() {
             <button
               onClick={handleScanTray}
               id="btn-scan-tray"
-              disabled={scanStep < 1}
+              disabled={scanStep < 1 || isScanning}
               className={`w-full py-2 font-bold rounded-lg flex items-center justify-center space-x-2 transition ${
                 scanStep >= 1
                   ? "bg-[#264DBF] hover:bg-[#1e3c99] text-white cursor-pointer"
@@ -187,13 +237,14 @@ export default function MobilePage() {
               }`}
             >
               <i className="fa-solid fa-qrcode"></i>
-              <span>Scanner Plateau-Repas</span>
+              <span>{isScanning ? "Validation en cours..." : "Scanner Plateau-Repas"}</span>
             </button>
           </div>
 
           {/* Test Mismatch / Error Button */}
           <button
             onClick={handleScanFraudMismatch}
+            disabled={isScanning}
             id="btn-scan-fraud"
             className="w-full py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 font-semibold text-[11px] rounded-lg border border-rose-200 transition cursor-pointer"
           >

@@ -1,133 +1,84 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useToast } from "@/context/ToastContext";
+import { exportToExcel, printHtmlDocument } from "@/lib/exportUtils";
 
 interface StockItem {
   id: string;
   name: string;
-  quantity: string;
-  threshold: string;
+  physicalStock: number;
+  thresholdStock: number;
+  unit: string;
   dlc: string;
-  status: {
-    label: string;
-    bgClass: string;
-    textClass: string;
-  };
-  rowClass?: string;
-  qtyClass?: string;
+  statusAlert: string;
 }
 
 interface PurchaseOrder {
   id: string;
   code: string;
-  badge: string;
-  badgeBg: string;
-  badgeText: string;
   supplier: string;
-  item: string;
-  amount?: string;
-  isTransmitted?: boolean;
+  itemDetails: string;
+  amount: number | null;
+  status: string;
 }
 
-const stockItems: StockItem[] = [
-  {
-    id: "1",
-    name: "Pavé de Saumon Frais 140g",
-    quantity: "4.20 Kg",
-    threshold: "15.00 Kg",
-    dlc: "21/08/2026 (J+2)",
-    status: {
-      label: "🔴 BC Généré Auto",
-      bgClass: "bg-rose-100",
-      textClass: "text-rose-800",
-    },
-    rowClass: "bg-rose-50/50",
-    qtyClass: "text-rose-700 font-black",
-  },
-  {
-    id: "2",
-    name: "Blanc de Volaille Découpé",
-    quantity: "8.50 Kg",
-    threshold: "12.00 Kg",
-    dlc: "22/08/2026 (J+3)",
-    status: {
-      label: "⚠️ Seuil Atteint",
-      bgClass: "bg-amber-100",
-      textClass: "text-amber-800",
-    },
-    rowClass: "bg-amber-50/40",
-    qtyClass: "text-amber-700 font-bold",
-  },
-  {
-    id: "3",
-    name: "Riz Blanc Long Grain Extra",
-    quantity: "45.00 Kg",
-    threshold: "20.00 Kg",
-    dlc: "15/12/2026",
-    status: {
-      label: "🟢 Confortable",
-      bgClass: "bg-emerald-100",
-      textClass: "text-emerald-800",
-    },
-    qtyClass: "text-slate-800",
-  },
-  {
-    id: "4",
-    name: "Yaourt Nature 125g",
-    quantity: "120 Unités",
-    threshold: "50 Unités",
-    dlc: "28/08/2026",
-    status: {
-      label: "🟢 Confortable",
-      bgClass: "bg-emerald-100",
-      textClass: "text-emerald-800",
-    },
-    qtyClass: "text-slate-800",
-  },
-];
-
 export default function StocksPage() {
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([
-    {
-      id: "1",
-      code: "BC-2026-0891",
-      badge: "BC_01 Généré",
-      badgeBg: "bg-amber-100",
-      badgeText: "text-amber-800",
-      supplier: "Marée Atlantique SARL",
-      item: "Pavé Saumon (Qté : 25 Kg arrondis)",
-      amount: "2,850.00 MAD",
-      isTransmitted: false,
-    },
-    {
-      id: "2",
-      code: "BC-2026-0888",
-      badge: "BC_02 Transmis",
-      badgeBg: "bg-emerald-100",
-      badgeText: "text-emerald-800",
-      supplier: "Maraîcher du Sud",
-      item: "Légumes Frais & Salades (40 Kg)",
-      isTransmitted: true,
-    },
-  ]);
+  const [stockItems, setStockItems] = useState<StockItem[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
+  const { showToast } = useToast();
 
-  const handleValidateBC = (code: string) => {
-    alert(
-      `🖨️ Bon de Commande ${code} validé. Impression du document et transmission au fournisseur lancées.`
+  const loadStocks = async (query = search) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/stocks?search=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      setStockItems(data.items);
+      setPurchaseOrders(data.purchaseOrders);
+    } catch {
+      showToast("error", "Chargement impossible", "Les stocks SQLite ne sont pas disponibles.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void loadStocks(""), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const handleValidateBC = async (order: PurchaseOrder) => {
+    setIsSubmitting(order.id);
+    try {
+      const response = await fetch("/api/stocks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "TRANSMIT_ORDER", id: order.id }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      await loadStocks();
+      showToast("success", "Bon de commande transmis", `${order.code} est maintenant transmis au fournisseur.`);
+      printHtmlDocument(`Bon de commande ${order.code}`, `<h1>${order.code}</h1><p>Fournisseur : ${order.supplier}</p><p>Article : ${order.itemDetails}</p>`);
+    } catch {
+      showToast("error", "Transmission impossible", "Le bon de commande n'a pas été modifié.");
+    } finally {
+      setIsSubmitting(null);
+    }
+  };
+
+  const exportStocks = async () => {
+    await exportToExcel(
+      `stocks-${new Date().toISOString().slice(0, 10)}.xlsx`,
+      "Stocks",
+      ["Article", "Stock physique", "Seuil sécurité", "Unité", "DLC", "Statut"],
+      stockItems.map((item) => [item.name, item.physicalStock, item.thresholdStock, item.unit, new Date(item.dlc).toLocaleDateString("fr-FR"), item.statusAlert])
     );
-    setPurchaseOrders((prev) =>
-      prev.map((po) =>
-        po.code === code
-          ? {
-              ...po,
-              badge: "BC_01 Transmis",
-              badgeBg: "bg-emerald-100",
-              badgeText: "text-emerald-800",
-              isTransmitted: true,
-            }
-          : po
-      )
-    );
+    showToast("success", "Export Excel généré", "Les stocks affichés ont été exportés.");
   };
 
   return (
@@ -139,9 +90,10 @@ export default function StocksPage() {
             <h3 className="text-sm font-bold text-slate-800">
               Niveaux de Stocks Denrées & Alertes FEFO
             </h3>
-            <span className="text-xs text-slate-500">
-              Déstockage automatique par recette
-            </span>
+            <div className="flex items-center gap-2">
+              <input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void loadStocks()} placeholder="Rechercher" className="px-2 py-1 border border-slate-200 rounded text-xs" />
+              <button onClick={exportStocks} disabled={isLoading} className="px-2 py-1 bg-emerald-600 text-white rounded text-xs font-bold disabled:opacity-50"><i className="fa-solid fa-file-excel mr-1"></i> Excel</button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -155,30 +107,33 @@ export default function StocksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 font-medium">
-                {stockItems.map((item) => (
+                {isLoading ? <tr><td colSpan={5} className="p-4 text-slate-500">Chargement des stocks...</td></tr> : stockItems.length === 0 ? <tr><td colSpan={5} className="p-4 text-slate-500">Aucun stock trouvé.</td></tr> : stockItems.map((item) => {
+                  const isLow = item.physicalStock <= item.thresholdStock;
+                  return (
                   <tr
                     key={item.id}
-                    className={item.rowClass || "hover:bg-slate-50"}
+                    className={isLow ? "bg-amber-50/40" : "hover:bg-slate-50"}
                   >
                     <td className="p-3 font-bold text-slate-800">
                       {item.name}
                     </td>
-                    <td className={`p-3 ${item.qtyClass}`}>
-                      {item.quantity}
+                    <td className={`p-3 ${isLow ? "text-amber-700 font-bold" : "text-slate-800"}`}>
+                      {item.physicalStock.toFixed(2)} {item.unit}
                     </td>
-                    <td className="p-3">{item.threshold}</td>
+                    <td className="p-3">{item.thresholdStock.toFixed(2)} {item.unit}</td>
                     <td className="p-3 font-mono text-slate-600">
-                      {item.dlc}
+                      {new Date(item.dlc).toLocaleDateString("fr-FR")}
                     </td>
                     <td className="p-3 text-right">
                       <span
-                        className={`px-2 py-0.5 rounded font-bold text-[10px] ${item.status.bgClass} ${item.status.textClass}`}
+                        className={`px-2 py-0.5 rounded font-bold text-[10px] ${isLow ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}
                       >
-                        {item.status.label}
+                        {item.statusAlert}
                       </span>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -201,41 +156,41 @@ export default function StocksPage() {
               <div
                 key={po.id}
                 className={`p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs transition ${
-                  po.isTransmitted ? "opacity-75" : ""
+                  po.status === "TRANSMIS" ? "opacity-75" : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`font-mono font-bold ${
-                      po.isTransmitted ? "text-slate-600" : "text-[#264DBF]"
+                      po.status === "TRANSMIS" ? "text-slate-600" : "text-[#264DBF]"
                     }`}
                   >
                     {po.code}
                   </span>
                   <span
-                    className={`px-1.5 py-0.5 font-bold text-[9px] rounded ${po.badgeBg} ${po.badgeText}`}
+                    className={`px-1.5 py-0.5 font-bold text-[9px] rounded ${po.status === "TRANSMIS" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}
                   >
-                    {po.badge}
+                    {po.status === "TRANSMIS" ? "Transmis" : "Généré"}
                   </span>
                 </div>
-                <div className={po.isTransmitted ? "text-slate-600 text-[11px]" : "text-slate-700"}>
+                <div className={po.status === "TRANSMIS" ? "text-slate-600 text-[11px]" : "text-slate-700"}>
                   <b>Fournisseur :</b> {po.supplier}
                   <br />
-                  <b>Article :</b> {po.item}
-                  {po.amount && (
+                  <b>Article :</b> {po.itemDetails}
+                  {po.amount !== null && (
                     <>
-                      <br />
-                      <b>Montant estimé :</b> {po.amount}
+                      <br /><b>Montant estimé :</b> {po.amount.toFixed(2)} MAD
                     </>
                   )}
                 </div>
-                {!po.isTransmitted && (
+                {po.status !== "TRANSMIS" && (
                   <button
-                    onClick={() => handleValidateBC(po.code)}
+                    onClick={() => void handleValidateBC(po)}
+                    disabled={isSubmitting === po.id}
                     className="w-full py-1.5 bg-[#264DBF] hover:bg-[#1e3c99] text-white font-bold rounded text-xs flex items-center justify-center space-x-1 transition cursor-pointer"
                   >
                     <i className="fa-solid fa-print mr-1"></i>
-                    <span>Valider & Imprimer</span>
+                    <span>{isSubmitting === po.id ? "Transmission..." : "Valider & Imprimer"}</span>
                   </button>
                 )}
               </div>

@@ -1,48 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useToast } from "@/context/ToastContext";
+import { exportToExcel, printHtmlDocument } from "@/lib/exportUtils";
 
 interface HotTempLog {
   id: string;
-  name: string;
-  temp: string;
+  dishOrDevice: string;
+  temperature: number;
+  isCompliant: boolean;
 }
 
 export default function HaccpPage() {
-  const [hotTemps, setHotTemps] = useState<HotTempLog[]>([
-    {
-      id: "1",
-      name: "Cuisson Saumon Four Vapeur",
-      temp: "+72.0°C",
-    },
-    {
-      id: "2",
-      name: "Marmite Velouté de Légumes",
-      temp: "+78.5°C",
-    },
-    {
-      id: "3",
-      name: "Chariot Bains-Marie Maintien",
-      temp: "+67.2°C",
-    },
-  ]);
+  const [hotTemps, setHotTemps] = useState<HotTempLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dishOrDevice, setDishOrDevice] = useState("");
+  const [temperature, setTemperature] = useState("68.5");
+  const { showToast } = useToast();
 
-  const handleAddManualTemp = () => {
-    const dish = prompt("Nom de la préparation ou équipement :", "Plat du Chef Chaud");
-    if (!dish) return;
-    const tempInput = prompt("Température mesurée (°C) :", "68.5");
-    if (!tempInput) return;
+  const loadHaccp = async () => {
+    try {
+      const response = await fetch("/api/haccp");
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      setHotTemps(data.hotTemps);
+    } catch {
+      showToast("error", "Chargement impossible", "Les relevés HACCP ne sont pas disponibles.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const formattedTemp = `+${parseFloat(tempInput).toFixed(1)}°C`;
-    setHotTemps((prev) => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        name: dish,
-        temp: formattedTemp,
-      },
-    ]);
-    alert(`✅ Relevé de température enregistré pour ${dish} (${formattedTemp}).`);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void loadHaccp(), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const handleAddManualTemp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    try {
+      const response = await fetch("/api/haccp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CREATE_TEMPERATURE", dishOrDevice, temperature }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      setHotTemps((previous) => [data.hotTemp, ...previous]);
+      setDishOrDevice("");
+      setIsModalOpen(false);
+      showToast("success", "Relevé enregistré", "Le contrôle thermique est conservé dans SQLite.");
+    } catch {
+      showToast("error", "Relevé refusé", "Vérifiez la préparation et la température saisies.");
+    }
   };
 
   return (
@@ -150,26 +161,29 @@ export default function HaccpPage() {
             Liaison Chaude Cuisson (≥ +63°C)
           </h3>
           <div className="space-y-2 text-xs">
-            {hotTemps.map((ht) => (
+            {isLoading ? <div className="text-slate-500">Chargement des relevés...</div> : hotTemps.map((ht) => (
               <div
                 key={ht.id}
                 className="p-2 bg-slate-50 rounded border border-slate-200 flex justify-between items-center"
               >
-                <span>{ht.name}</span>
-                <span className="font-bold text-emerald-700 flex items-center gap-1">
-                  {ht.temp} <i className="fa-solid fa-check text-[10px]"></i>
+                <span>{ht.dishOrDevice}</span>
+                <span className={`font-bold flex items-center gap-1 ${ht.isCompliant ? "text-emerald-700" : "text-rose-700"}`}>
+                  {ht.temperature > 0 ? "+" : ""}{ht.temperature.toFixed(1)}°C <i className={`fa-solid ${ht.isCompliant ? "fa-check" : "fa-xmark"} text-[10px]`}></i>
                 </span>
               </div>
             ))}
           </div>
           <button
-            onClick={handleAddManualTemp}
+            onClick={() => setIsModalOpen(true)}
             className="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded text-xs transition cursor-pointer"
           >
             + Enregistrer Relevé Thermique Manuel
           </button>
+          <button onClick={() => void exportToExcel(`haccp-${new Date().toISOString().slice(0, 10)}.xlsx`, "HACCP", ["Préparation", "Température", "Conforme"], hotTemps.map((item) => [item.dishOrDevice, item.temperature, item.isCompliant ? "Oui" : "Non"]))} className="w-full py-2 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded text-xs transition cursor-pointer">Exporter Excel</button>
+          <button onClick={() => printHtmlDocument("Relevés HACCP", hotTemps.map((item) => `<p>${item.dishOrDevice} : ${item.temperature}°C</p>`).join(""))} className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-xs transition cursor-pointer">Imprimer</button>
         </div>
       </div>
+      {isModalOpen && <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4"><form onSubmit={handleAddManualTemp} className="bg-white rounded-xl p-5 w-full max-w-sm space-y-3 shadow-xl"><h3 className="font-bold text-slate-800">Nouveau relevé thermique</h3><input required value={dishOrDevice} onChange={(event) => setDishOrDevice(event.target.value)} placeholder="Préparation ou équipement" className="w-full border border-slate-200 rounded p-2 text-xs" /><input required type="number" step="0.1" value={temperature} onChange={(event) => setTemperature(event.target.value)} placeholder="Température °C" className="w-full border border-slate-200 rounded p-2 text-xs" /><div className="flex gap-2"><button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2 bg-slate-100 rounded text-xs font-bold">Annuler</button><button type="submit" className="flex-1 py-2 bg-slate-800 text-white rounded text-xs font-bold">Enregistrer</button></div></form></div>}
     </section>
   );
 }

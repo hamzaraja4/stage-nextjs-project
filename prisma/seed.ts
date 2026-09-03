@@ -1,6 +1,11 @@
-import { PrismaClient, RoleType, TrayStatus, CartStatus, PurchaseOrderStatus } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: new PrismaBetterSqlite3({
+    url: process.env.DATABASE_URL || "file:./prisma/dev.db",
+  }),
+});
 
 async function main() {
   console.log("🌱 Starting Database Seed for HIS Catering Restauration...");
@@ -11,7 +16,7 @@ async function main() {
     update: {},
     create: {
       name: "Chef Cuisine / Économe",
-      type: RoleType.CHEF_CUISINE,
+      type: "CHEF_CUISINE",
     },
   });
 
@@ -20,7 +25,7 @@ async function main() {
     update: {},
     create: {
       name: "Soignant d'Étage (Infirmier)",
-      type: RoleType.SOIGNANT_ETAGE,
+      type: "SOIGNANT_ETAGE",
     },
   });
 
@@ -29,7 +34,7 @@ async function main() {
     update: {},
     create: {
       name: "Agent Caisse Self & Restauration",
-      type: RoleType.AGENT_CAISSE,
+      type: "AGENT_CAISSE",
     },
   });
 
@@ -38,7 +43,7 @@ async function main() {
     update: {},
     create: {
       name: "Direction Médicale & Qualité",
-      type: RoleType.DIRECTION_QUALITE,
+      type: "DIRECTION_QUALITE",
     },
   });
 
@@ -209,7 +214,7 @@ async function main() {
       patientId: patient1.id,
       dietId: dietNormal.id,
       qrToken: "9812-7A",
-      status: TrayStatus.SCELLE_QR,
+      status: "SCELLE_QR",
       mealService: "Déjeuner",
       starter: "Salade composée méditerranéenne",
       mainCourse: "Pavé de saumon au beurre fin (140g)",
@@ -226,7 +231,7 @@ async function main() {
       patientId: patient2.id,
       dietId: dietDiab.id,
       qrToken: "9492-BLOCKED",
-      status: TrayStatus.A_JEUN_BLOQUE,
+      status: "A_JEUN_BLOQUE",
       mealService: "Déjeuner",
       mainCourse: "Blanc de volaille poché & Légumes sans sucre",
       isBlocked: true,
@@ -241,7 +246,7 @@ async function main() {
       patientId: patient3.id,
       dietId: dietSansSel.id,
       qrToken: "8831-2B",
-      status: TrayStatus.SCELLE_QR,
+      status: "SCELLE_QR",
       mealService: "Déjeuner",
       starter: "Carottes râpées citron",
       mainCourse: "Pavé de saumon vapeur sans sel",
@@ -259,7 +264,7 @@ async function main() {
       patientId: patient4.id,
       dietId: dietPostPartum.id,
       qrToken: "7719-3M",
-      status: TrayStatus.SCELLE_QR,
+      status: "SCELLE_QR",
       mealService: "Déjeuner",
       starter: "Velouté de potiron & graines",
       mainCourse: "Blanc de volaille rôti aux herbes",
@@ -279,7 +284,7 @@ async function main() {
       traysCount: 28,
       tempHot: 66.4,
       tempCold: 2.8,
-      status: CartStatus.EN_DISTRIBUTION,
+      status: "EN_DISTRIBUTION",
       scannedBy: "Agent Omar",
       departureTime: new Date(),
     },
@@ -294,8 +299,29 @@ async function main() {
       traysCount: 32,
       tempHot: 65.1,
       tempCold: 2.5,
-      status: CartStatus.SCELLE_VALIDE,
+      status: "SCELLE_VALIDE",
       scannedBy: "Agent Karim",
+    },
+  });
+
+  await prisma.emergencyFridge.upsert({
+    where: { name: "Frigo Relais Urgences / Chirurgie" },
+    update: {},
+    create: {
+      name: "Frigo Relais Urgences / Chirurgie",
+      service: "Chirurgie",
+      availableTrays: 3,
+      lastConsumedInfo: "1 consommé à 23:14 (Ch. 109)",
+    },
+  });
+
+  await prisma.emergencyFridge.upsert({
+    where: { name: "Frigo Relais Médecine / Maternité" },
+    update: {},
+    create: {
+      name: "Frigo Relais Médecine / Maternité",
+      service: "Médecine / Maternité",
+      availableTrays: 4,
     },
   });
 
@@ -351,7 +377,6 @@ async function main() {
         isNightShift: true,
       },
     ],
-    skipDuplicates: true,
   });
 
   // 9. Stock Items & Purchase Orders
@@ -390,7 +415,6 @@ async function main() {
         statusAlert: "🟢 Confortable",
       },
     ],
-    skipDuplicates: true,
   });
 
   await prisma.purchaseOrder.upsert({
@@ -401,7 +425,7 @@ async function main() {
       supplier: "Marée Atlantique SARL",
       itemDetails: "Pavé Saumon (Qté : 25 Kg arrondis)",
       amount: 2850.0,
-      status: PurchaseOrderStatus.GENERE,
+      status: "GENERE",
     },
   });
 
@@ -423,7 +447,6 @@ async function main() {
         normMax: -18.0,
       },
     ],
-    skipDuplicates: true,
   });
 
   await prisma.sampleMeal.createMany({
@@ -444,7 +467,6 @@ async function main() {
         daysLeft: 5,
       },
     ],
-    skipDuplicates: true,
   });
 
   await prisma.hotTempLog.createMany({
@@ -462,7 +484,6 @@ async function main() {
         temperature: 67.2,
       },
     ],
-    skipDuplicates: true,
   });
 
   console.log("✅ Database Seed completed successfully!");

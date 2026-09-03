@@ -1,10 +1,32 @@
 "use client";
 
-import React from "react";
-import { useApp } from "@/context/AppContext";
+import React, { useEffect, useState } from "react";
+import { exportToExcel, printHtmlDocument } from "@/lib/exportUtils";
+import { useToast } from "@/context/ToastContext";
 
 export default function AntiFraudePage() {
-  const { auditLogs } = useApp();
+  const [auditLogs, setAuditLogs] = useState<Array<{ id: string; timestamp: string; patientName: string; ipp: string; location: string; agentName: string; mealType: string; scanResult: string; scanDuration: string; status: string }>>([]);
+  const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const { showToast } = useToast();
+
+  const loadAudit = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/antifraude?search=${encodeURIComponent(search)}`);
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      setAuditLogs(data.logs);
+    } catch { showToast("error", "Audit indisponible", "Impossible de récupérer les événements SQLite."); }
+    finally { setIsLoading(false); }
+  };
+
+  useEffect(() => { const timer = window.setTimeout(() => void loadAudit(), 0); return () => window.clearTimeout(timer); }, [search]);
+
+  const exportAudit = async () => {
+    await exportToExcel(`antifraude-${new Date().toISOString().slice(0, 10)}.xlsx`, "Audit", ["Date", "Patient", "IPP", "Lieu", "Agent", "Repas", "Résultat", "Statut"], auditLogs.map((entry) => [entry.timestamp, entry.patientName, entry.ipp, entry.location, entry.agentName, entry.mealType, entry.scanResult, entry.status]));
+    showToast("success", "Export Excel généré", "Les événements d’audit ont été exportés.");
+  };
 
   return (
     <section id="view-antifraude" className="space-y-6">
@@ -87,6 +109,7 @@ export default function AntiFraudePage() {
           <h3 className="text-sm font-bold text-slate-800">
             Journal d&apos;Audit en Temps Réel des Scans & Distributions
           </h3>
+          <div className="flex items-center gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher" className="px-2 py-1 border border-slate-200 rounded text-xs" /><button onClick={() => void exportAudit()} className="px-2 py-1 bg-emerald-600 text-white rounded text-xs font-bold">Excel</button><button onClick={() => printHtmlDocument("Audit anti-fraude", auditLogs.map((entry) => `<p>${entry.patientName} - ${entry.scanResult} - ${entry.status}</p>`).join(""))} className="px-2 py-1 bg-slate-700 text-white rounded text-xs font-bold">Imprimer</button></div>
           <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
             <i className="fa-solid fa-lock"></i> Registre Inviolable Non
             Modifiable
@@ -106,17 +129,17 @@ export default function AntiFraudePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 font-medium" id="audit-log-body">
-              {auditLogs.map((entry) => (
+              {isLoading ? <tr><td colSpan={7} className="p-4 text-slate-500">Chargement de l’audit...</td></tr> : auditLogs.length === 0 ? <tr><td colSpan={7} className="p-4 text-slate-500">Aucun événement trouvé.</td></tr> : auditLogs.map((entry) => (
                 <tr
                   key={entry.id}
                   className="hover:bg-slate-50 transition"
                 >
-                  <td className="p-3 font-mono text-slate-500">{entry.time}</td>
+                  <td className="p-3 font-mono text-slate-500">{new Date(entry.timestamp).toLocaleTimeString("fr-FR")}</td>
                   <td className="p-3 font-bold text-slate-800">
-                    {entry.patient} ({entry.ipp})
+                    {entry.patientName} ({entry.ipp})
                   </td>
                   <td className="p-3">{entry.location}</td>
-                  <td className="p-3">{entry.agent}</td>
+                  <td className="p-3">{entry.agentName}</td>
                   <td className="p-3">{entry.mealType}</td>
                   <td className="p-3 text-emerald-600 font-bold">
                     <i className="fa-solid fa-check-double mr-1"></i>{" "}

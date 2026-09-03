@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
+import { useToast } from "@/context/ToastContext";
 
 interface PosArticle {
   id: string;
@@ -12,81 +13,55 @@ interface PosArticle {
   isNightShift?: boolean;
 }
 
-const posArticles: PosArticle[] = [
-  {
-    id: "1",
-    name: "Formule Complète Personnel",
-    subtitle: "Entrée + Plat + Dessert + Pain",
-    icon: "🍱",
-    price: 35.0,
-  },
-  {
-    id: "2",
-    name: "Plat Protéiné Seul",
-    subtitle: "Viande/Poisson du jour",
-    icon: "🥩",
-    price: 22.0,
-  },
-  {
-    id: "3",
-    name: "Salade Bar / Entrée",
-    subtitle: "Au choix au buffet",
-    icon: "🥗",
-    price: 10.0,
-  },
-  {
-    id: "4",
-    name: "Dessert Maison / Fruit",
-    subtitle: "Pâtisserie ou Yaourt",
-    icon: "🍮",
-    price: 8.0,
-  },
-  {
-    id: "5",
-    name: "Boisson / Café",
-    subtitle: "Distributeur self",
-    icon: "☕",
-    price: 5.0,
-  },
-  {
-    id: "6",
-    name: "Collation Garde Nuit",
-    subtitle: "Prise en charge 100% Clinique",
-    icon: "🌙",
-    price: 0.0,
-    isNightShift: true,
-  },
-];
-
 export default function PosPage() {
-  const { posBalance, rechargePosBalance, debitPosBalance } = useApp();
-  const [selectedArticle, setSelectedArticle] = useState<PosArticle>(
-    posArticles[0]
-  );
+  const { posBalance, setPosBalance } = useApp();
+  const { showToast } = useToast();
+  const [posArticles, setPosArticles] = useState<PosArticle[]>([]);
+  const [selectedArticle, setSelectedArticle] = useState<PosArticle | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRecharge = (amount: number) => {
-    rechargePosBalance(amount);
-    alert(`✅ Compte rechargé avec succès de +${amount} MAD.`);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void fetch("/api/pos").then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error);
+        setPosArticles(data.articles);
+        setSelectedArticle(data.articles[0] || null);
+        if (data.staff?.balance !== undefined) setPosBalance(data.staff.balance);
+      }).catch(() => showToast("error", "Chargement impossible", "Les articles POS ne sont pas disponibles.")).finally(() => setIsLoading(false));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const handleRecharge = async (amount: number) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/pos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "RECHARGE", amount }) });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      setPosBalance(data.newBalance);
+      showToast("success", "Compte rechargé", `+${amount} MAD ajoutés au badge.`);
+    } catch { showToast("error", "Recharge impossible", "Le compte n'a pas été modifié."); }
+    finally { setIsSubmitting(false); }
   };
 
-  const handleDebit = () => {
+  const handleDebit = async () => {
+    if (!selectedArticle) return;
+    setIsSubmitting(true);
     if (selectedArticle.price === 0) {
-      alert("💳 Plateau Garde de Nuit validé (Pris en charge à 100% par la clinique).");
+      showToast("success", "Plateau garde validé", "Pris en charge à 100% par la clinique.");
+      setIsSubmitting(false);
       return;
     }
-
-    const success = debitPosBalance(selectedArticle.price);
-    if (success) {
-      alert(
-        `💳 Débit validé par RFID : ${selectedArticle.price.toFixed(
-          2
-        )} MAD déduits. Nouveau solde : ${(
-          posBalance - selectedArticle.price
-        ).toFixed(2)} MAD.`
-      );
-    } else {
-      alert("⚠️ Solde insuffisant !");
-    }
+    try {
+      const response = await fetch("/api/pos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "DEBIT", amount: selectedArticle.price, articleId: selectedArticle.id }) });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw new Error(data.error);
+      setPosBalance(data.newBalance);
+      showToast("success", "Débit validé", `${selectedArticle.price.toFixed(2)} MAD débités.`);
+    } catch { showToast("error", "Débit refusé", "Solde insuffisant ou erreur serveur."); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
@@ -174,8 +149,8 @@ export default function PosPage() {
 
           {/* Articles Grille Tactile */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {posArticles.map((article) => {
-              const isSelected = selectedArticle.id === article.id;
+            {isLoading ? <div className="col-span-3 text-xs text-slate-500">Chargement des articles...</div> : posArticles.map((article) => {
+              const isSelected = selectedArticle?.id === article.id;
               if (article.isNightShift) {
                 return (
                   <button
@@ -235,18 +210,19 @@ export default function PosPage() {
                   id="pos-selected-item"
                   className="text-slate-800 font-bold"
                 >
-                  {selectedArticle.name}
+                  {selectedArticle?.name || "Aucun article sélectionné"}
                 </strong>
               </span>
               <span
                 className="font-bold text-sm text-[#264DBF]"
                 id="pos-selected-price"
               >
-                {selectedArticle.price.toFixed(2)} MAD
+                {(selectedArticle?.price || 0).toFixed(2)} MAD
               </span>
             </div>
             <button
-              onClick={handleDebit}
+              onClick={() => void handleDebit()}
+              disabled={isSubmitting || !selectedArticle}
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-lg flex items-center justify-center space-x-2 shadow-md transition cursor-pointer"
             >
               <i className="fa-solid fa-credit-card"></i>
