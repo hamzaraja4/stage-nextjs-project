@@ -62,6 +62,18 @@ export async function exportDistributionPdf(rows: string[][]) {
   pdf.save(`distribution_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
+export async function exportReportPdf(title: string, headers: string[], rows: string[][], filename: string) {
+  const { jsPDF } = await import("jspdf");
+  const { default: autoTable } = await import("jspdf-autotable");
+  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  pdf.setFontSize(16);
+  pdf.text(title, 14, 15);
+  pdf.setFontSize(9);
+  pdf.text(`Export du ${new Date().toLocaleDateString("fr-FR")} | Total : ${rows.length}`, 14, 22);
+  autoTable(pdf, { startY: 28, head: [headers], body: rows, styles: { fontSize: 7 }, headStyles: { fillColor: [38, 77, 191] } });
+  pdf.save(filename.endsWith(".pdf") ? filename : `${filename}.pdf`);
+}
+
 export function printHtmlDocument(title: string, htmlContent: string) {
   const printWindow = window.open("", "_blank", "width=850,height=900");
   if (!printWindow) {
