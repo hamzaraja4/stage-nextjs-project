@@ -1,0 +1,12 @@
+---
+description: Naming conventions for product code
+alwaysApply: true
+---
+
+# Naming
+
+Do not put agent/planning vocabulary into the product codebase.
+
+- Avoid planning words in file names, exports, components, routes, API paths and UI copy.
+- Use domain and product terminology instead.
+- Planning vocabulary is allowed only inside implementation documents.

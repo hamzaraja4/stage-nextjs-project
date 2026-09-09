@@ -1,0 +1,59 @@
+---
+description: One page = one screen — no global page scroll, secondary info via in-place toggling
+globs: app/**/*.tsx, components/**/*.tsx
+alwaysApply: true
+priority: high
+tags: [ux, single-screen, no-scroll, non-expert, layout, visibility]
+---
+
+# Single Screen — "1 page = 1 screen"
+
+The application targets users with little experience of information
+systems: the essential information should be immediately visible and
+easy to understand without unnecessary navigation or scrolling.
+
+- Scroll behavior is defined exclusively in
+  `knowledge-base/global/layout.mdc`.
+- The main information must be visible and understandable at a glance,
+  without requiring prior interaction.
+- Dashboard pages should preserve a coherent single-screen view at `md+`.
+- When the amount of information exceeds the available space, do not
+  automatically extend the page. Organize, prioritize, condense, or
+  progressively reveal secondary information while keeping the main view
+  clear and coherent.
+- The interface should preserve access to secondary information without
+  unnecessarily breaking the user's context or forcing them to navigate
+  to another page.
+- Choose the organization pattern according to the content, hierarchy,
+  interaction needs, and available space. Do not treat any specific
+  component or pattern as mandatory.
+- Possible patterns include, but are not limited to:
+  - tabs or segmented views;
+  - expandable or collapsible sections;
+  - contextual panels or drawers;
+  - modals;
+  - pagination;
+  - search and filtering;
+  - compact data organization;
+  - progressive disclosure;
+  - component-level scrolling when permitted by the global layout rules;
+  - or another existing Design System pattern that better preserves
+    clarity and coherence.
+- Prefer reusing existing components and established Design System
+  patterns rather than introducing a new interaction pattern without need.
+- Do not add interactions merely to avoid scrolling. The chosen pattern
+  must make the information easier to understand and access.
+- Prefer compact cards and tables and avoid large empty areas
+  (see `knowledge-base/ux/information-density.mdc`).
+- Use direct, simple vocabulary adapted to non-expert users
+  (see `knowledge-base/ux/ui-copy.mdc`).
+
+## References
+
+See:
+- `knowledge-base/global/layout.mdc` (scroll rules, technical source)
+- `app/page.tsx`
+- `components/layout/app-layout.tsx`
+- `components/ui/user-table.tsx`
+- `components/ui/tab.tsx`
+- `components/ui/modal.tsx`

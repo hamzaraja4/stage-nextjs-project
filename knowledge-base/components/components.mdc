@@ -1,0 +1,61 @@
+---
+description: General component rules
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: true
+priority: high
+tags: [component, reusable, props]
+---
+
+# Components
+
+## No unnecessary wrappers
+
+- Do not wrap a component in a `<div>` or any other container when it is the only
+  element or when the container serves no layout/styling purpose. Examples: a
+  single `<Input>`, a single `<Modal>`, a `<UserTable>` as the sole content of
+  a page — none of them need a wrapping `<div>`. A wrapper is only justified when
+  it carries a className needed for positioning/spacing or when grouping several
+  siblings.
+
+## Reuse
+
+- Do not create an abstraction for a single need.
+
+- Reuse existing components before creating new ones.
+- Before creating a component, inspect the files `components/ui/index.ts`, `components/layout/index.ts` and `components/shared/index.ts` to know the existing components; only create a new component if none existing fits, and only after human validation.
+- Do not write a raw HTML element (`<button>`, `<input>`, `<select>`, `<table>`, badge, etc.) when an existing component covers the need. Systematically consult the `components/*/index.ts` files (dynamic source of truth, always up to date) and reuse the matching component. This rule applies both to current components and to any future component added. If no existing component fits, ask for validation before creating.
+
+
+## Optimize before creating
+
+- Before creating any new component (local or in `components/`), always inspect
+  the existing components first (`components/ui/index.ts`,
+  `components/layout/index.ts`, `components/shared/index.ts`). If a similar
+  component already exists, extend or modify it dynamically (new prop, new
+  variant, new `className` overload) rather than duplicating its logic.
+- Creating a new component is acceptable when it covers a real need that no
+  existing component can satisfy — even for a single use. In that case, place it
+  under `components/` (`ui/`, `layout/` or `shared/`) so it remains reusable and
+  discoverable through the folder's `index.ts`.
+- Avoid local component definitions inside a page file when the same result can
+  be achieved by composing existing components or extending one of them. A page
+  file primarily composes, wires data, and holds layout.
+
+## Location
+
+- Any new component must be created in the `components/` folder.
+- Place a component in `components/ui/` when it is generic and related to the interface or the Design System.
+  Examples: ClickableButton, Input, Badge, Modal, UserTable.
+- Place a component in `components/layout/` when it defines the structure or the layout of the application.
+  Examples: AppLayout, SideNav, Header.
+- Place a component in `components/shared/` when it is global, cross-cutting and reused by several independent parts of the application.
+- Do not place a component directly in `app/` or alongside another component
+  file — see "Optimize before creating" above.
+
+## Exports
+
+- Each subfolder of `components/` that contains components must have an `index.ts` file.
+- If the `index.ts` file does not exist, create it when adding a component in that folder.
+- The `index.ts` file must export only the public API of the folder's components.
+- Use named exports.
+- Import components from the folder's `index.ts` file whenever possible.

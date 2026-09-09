@@ -1,0 +1,23 @@
+---
+description: Input component and usage
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [input, form, field, search, ui, component]
+---
+
+# Inputs
+
+## Rules
+
+- The field must be responsive.
+
+Use a compact search field with:
+- a leading search icon inside the field;
+- a subtle bordered input surface;
+- muted placeholder text;
+- clear focus feedback;
+- full available width when used as a form/search control.
+
+## Reference implementation
+See `components/ui/input.tsx`.

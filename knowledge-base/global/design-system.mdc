@@ -1,0 +1,24 @@
+---
+description: Enterprise Design System
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: true
+priority: high
+tags: [design, system, component, consistency]
+---
+
+# Design System
+
+- Orange is reserved exclusively for critical alerts or urgent cases. It must never be used as a decorative color.
+
+- If orange or yellow are used for an alert, they must not be reused elsewhere on the same page.
+
+- Consult the Design System page: `app/design-system/page.tsx`.
+- Consult the global style file: `app/globals.css`.
+
+## Global variables and tokens
+
+- Use the existing global variables and design tokens defined in `app/globals.css`.
+- Do not repeat the same visual value across several components.
+- Do not hard-code colors, spacings, radiuses, text sizes or other values already available as tokens.
+- Create a new global variable only when it meets a need that is reusable across several components or pages.
+- Any new global variable or new design token must be validated by the developer before being added.

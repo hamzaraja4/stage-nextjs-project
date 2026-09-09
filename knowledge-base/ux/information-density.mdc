@@ -1,0 +1,39 @@
+---
+description: Information density — each fact appears once (no duplicated values or counts), compact cards and tables
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: false
+priority: medium
+tags: [ux, density, dashboard, information, readability]
+---
+
+# Information Density
+
+## Clarity over density
+
+- Compact but readable: visual density is fine, information overload is not.
+  A page overloaded with information becomes unreadable for non-expert users
+  (see `knowledge-base/ux/simple-ui.mdc`).
+
+- Prefer compact cards.
+
+- Prefer compact tables.
+
+- Limit the information displayed in a Card so that the user can easily remember its position.
+
+- Give sections breathing room with consistent spacing, without creating
+  useless large empty areas.
+
+## Information appears once
+
+- Each fact must have a single visible location per screen: never show the
+  same value more than once (header + card + list = unnecessary repetition).
+
+- When a value is already displayed in the page header or a filter, do not
+  repeat it inside the content.
+
+- A count belongs only to the header of its own list/table and must not be
+  duplicated in summary cards.
+
+- Prefer a single compact summary that links to the detail view over
+  duplicating the full data inline.
+

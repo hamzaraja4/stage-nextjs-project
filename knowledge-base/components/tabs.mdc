@@ -1,0 +1,17 @@
+---
+description: Tabbed pages navigation component and usage
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [tabs, navigation, pages, component, ui, design-system]
+---
+
+# Tabbed Pages
+
+- The tabs are displayed on a single line.
+- Only one tab can be active at a time.
+- The active tab must be clearly distinguished visually from inactive tabs.
+- Clicking a tab activates it immediately and displays its associated content.
+
+## Reference implementation
+See `components/ui/tab.tsx`.

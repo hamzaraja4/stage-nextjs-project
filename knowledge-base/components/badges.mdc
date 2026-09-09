@@ -1,0 +1,16 @@
+---
+description: Badge component and usage
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [badge, status, component, ui, design-system]
+---
+
+# Badges
+
+Badges should have a compact, pill-shaped appearance with clear visual distinction
+between different statuses or categories. They should remain lightweight and
+secondary in the visual hierarchy
+
+## Reference implementation
+See `components/ui/badge.tsx`.

@@ -1,0 +1,19 @@
+---
+description: Project technology stack
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: true
+---
+
+# Technology
+
+- Stack: Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4.
+  `package.json` is the source of truth for the exact versions.
+
+- Icons: `lucide-react` is the only icon library. Always use it through the
+  existing `Icon` component (`components/ui/icon.tsx`, exported from
+  `components/ui/index.ts`), picking only `name`, `variant` and `size`.
+  Never add another icon library.
+
+- Animations: use the Tailwind CSS built-in animation and transition
+  utilities (`animate-*`, `transition-*`). Do not add an animation library
+  (e.g. framer-motion) or custom keyframes without developer validation.

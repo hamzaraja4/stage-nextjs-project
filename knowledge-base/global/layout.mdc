@@ -1,0 +1,40 @@
+---
+description: Global layout rules
+globs: app/**/*.tsx
+alwaysApply: true
+priority: high
+tags: [layout, page, grid, container]
+---
+
+# Layout
+
+This file is the single technical reference for the scroll rules.
+`knowledge-base/responsive/responsive.mdc` and `knowledge-base/ux/single-screen.mdc`
+state the rule and refer here; the `<main>` implementation details live in the
+comment inside `components/layout/app-layout.tsx`.
+
+- Favor a contained interface — no global page scroll on dashboard pages; other
+  pages may use the page scroll only when the content genuinely requires it.
+
+- Use a container only on large screens.
+
+- Remove the container on medium and small screens.
+
+- ## Page Types and Scroll Behavior
+
+### Dashboard and Detail pages
+
+- At `md+`, the page MUST NOT create or allow page-level vertical scrolling.
+- At `md+`, internal component scrolling is allowed when the component
+  content requires it.
+- Below `md`, page-level vertical scrolling is allowed.
+- Below `md`, internal component scrolling MUST NOT be used.
+- On mobile, overflowing content MUST remain reachable through page-level
+  scrolling.
+
+### Other pages
+
+- Page-level vertical scrolling is allowed when the content genuinely
+  requires it.
+- Internal component scrolling may be used when appropriate.
+- Avoid unnecessary nested scrolling.

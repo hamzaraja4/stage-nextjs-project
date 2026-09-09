@@ -1,0 +1,12 @@
+---
+description: Dropdown behavior — only one dropdown open at a time, re-toggling closes, openable and closable again
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: false
+priority: medium
+tags: [dropdown, select, menu, filter]
+---
+
+# Dropdowns
+
+- Only one dropdown can be open at a time. When a dropdown opens, any other currently open dropdown must automatically close.
+- The menu must be openable and closable again.

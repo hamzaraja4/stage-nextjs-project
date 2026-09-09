@@ -1,0 +1,24 @@
+---
+description: Modal component and usage
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [modal, dialog, component, ui, design-system]
+---
+
+# Modals
+
+## Rules
+
+- The modal must appear above the page content with a dark overlay.
+- The overlay must cover the whole window.
+- The content behind the modal must remain visually dimmed.
+- The modal must have a clearly identifiable close button.
+- The close button must be placed at the top right.
+- The primary actions must be placed at the bottom of the modal, aligned to the right.
+- The primary action uses the primary color of the design system (solid blue, white text).
+- The secondary action remains a simple text link, without background or border.
+- The buttons must reuse the existing `ClickableButton` component (exported from `components/ui/index.ts`).
+
+## Reference implementation
+See `components/ui/modal.tsx`.

@@ -1,0 +1,59 @@
+---
+description: Table rules — one table per page, fixed header, pagination, sorting and filters; table→cards under md (mechanics in user-table.tsx)
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [table, dashboard, data, pagination, filter, list]
+---
+
+# Tables
+
+- A page displaying a table must not scroll: the table fills the available
+  space on its own, and long content is handled by pagination, not by page
+  scroll.
+
+- Only one table per interface: a single page or visible tab may display at
+  most one table at a time.
+
+- An empty table must occupy all the available space.
+
+- Tables use a fixed table header.
+
+- The table header can contain the filtering controls.
+
+- Sorting must be indicated visually when a column is sortable.
+
+- The table must use pagination when the number of rows is large.
+
+
+- The table content can scroll horizontally or vertically inside its own
+  dedicated area when necessary — this is the only scroll allowed around a
+  table: a page with a table never scrolls.
+
+## Responsive (table → cards)
+
+- Under `md` (viewport width < 896px), `UserTable` automatically renders each row as a
+  stacked card. Both views use the exact same columns, data, sorting and pagination.
+- A card = one row: it MUST keep ALL the row's column values reachable inside the
+  card (directly visible, or revealed by its in-place toggle): no dropped column,
+  no horizontal scroll.
+- The card mirrors the table look: its mechanics — card anatomy (which column
+  becomes the title, the footer actions, the label/value rows), the
+  `cardVisiblePairs` in-place "Voir tout" toggle and the opt-in `cardActions`
+  enriched mode (per-card 3-dot menus, "Actions" toolbars above and below the
+  card list) — are documented in `components/ui/user-table.tsx`. Do not
+  duplicate them here.
+- Card action menus follow `knowledge-base/components/dropdowns.mdc`: only one
+  menu open at a time across the table, re-toggling closes, outside tap closes.
+
+- Tables should have a clean, structured, information-dense appearance with clear
+column hierarchy, readable rows, and subtle separation between content.
+
+- When applicable, tables should support:
+  - Column sorting.
+  - Pagination.
+  - Configurable number of rows per page.
+  - Search and filtering.
+
+## Reference implementation
+See `components/ui/user-table.tsx`.

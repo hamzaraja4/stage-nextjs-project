@@ -1,0 +1,31 @@
+---
+description: Responsive design rules
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: true
+priority: high
+tags: [responsive, mobile, tablet, desktop, accessible]
+---
+
+# Responsive
+
+- Adapt the interface to small screens.
+
+- Adapt the interface to tablets.
+
+- Adapt the interface to large screens.
+
+## Reflow and small screens
+
+- Under the `md` breakpoint (viewport width < 896px), when the layout reflows
+  (elements stack vertically because of the resize), the page MUST become
+  scrollable: all elements must remain reachable. No data or element may be
+  clipped or hidden. Scroll rules and implementation: see
+  `knowledge-base/global/layout.mdc` and `components/layout/app-layout.tsx`.
+- Under the same breakpoint, tables MUST transform into stacked cards carrying
+  ALL the column values of their rows (visible, or revealed by the card
+  in-place toggle): no hidden column, no horizontal
+  scroll. See `knowledge-base/components/tables.mdc` and `components/ui/user-table.tsx`.
+- At `md+`, the global vertical page scroll is allowed on non-dashboard pages
+  when the content genuinely requires it, while dashboard pages still fit the
+  viewport and never scroll (rules: see `knowledge-base/global/layout.mdc`).
+

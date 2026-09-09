@@ -1,0 +1,51 @@
+---
+description: Simple, uncluttered UI for non-expert users
+globs: app/**/*.tsx, components/**/*.tsx
+alwaysApply: true
+priority: high
+tags: [ux, simplicity, clarity, layout, non-expert, overlap]
+---
+
+# Simple and readable interface
+
+## Clarity before density
+
+- Clarity comes before density: a page must be understandable at a glance,
+  without the user having to search for information.
+- A page has ONE main objective and a single focus area. Secondary
+  information is not stacked up: it goes behind a tab (`Tabs`) or into a
+  detail sheet reached by a link.
+- Limit the number of areas visible at the same time: a summary (a few key
+  figures), then a single main list/table. The other sections move to
+  secondary access.
+- Natural reading order: header → summary → detail. Each area has a
+  distinct role and a clear title.
+
+## Zero overlap
+
+- Areas must never overlap or superimpose on the screen.
+- Reserve space with grid/flex and the Design System spacing tokens; never
+  compress blocks to make everything fit.
+- When space is missing, blocks wrap to the next line (clean vertical
+  stacking) rather than shrinking until they touch.
+- Check every intermediate screen width: no collision between cards,
+  headers, filters and tables.
+
+## For non-expert users
+
+- A single main content column, at most one optional secondary column.
+- Simple labels, readable figures, direct vocabulary (see
+  `knowledge-base/ux/ui-copy.mdc`).
+- Table limited to the columns useful for the task; the full detail goes
+  to the detail sheet.
+- Avoid accumulating cards, tables and filters side by side: this is the
+  typical pattern of an unreadable page.
+
+## References
+
+See:
+- `knowledge-base/ux/single-screen.mdc`
+- `knowledge-base/ux/information-density.mdc`
+- `knowledge-base/ux/ui-copy.mdc`
+- `components/ui/user-table.tsx`
+- `components/ui/tab.tsx`

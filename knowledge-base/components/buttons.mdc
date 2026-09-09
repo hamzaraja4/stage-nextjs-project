@@ -1,0 +1,21 @@
+---
+description: Button component and usage
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [button, buttons, component, ui, design-system]
+---
+
+# Buttons
+
+## Rules
+
+- Reuse the existing `ClickableButton` component (exported from `components/ui/index.ts`) whenever a button is needed.
+- Respect the style of the reference component.
+- Buttons must follow the Design System for all visual properties, including
+colors, typography, spacing, radius, sizing, states, and iconography.
+- Use a clean, compact, content-driven appearance with clear visual hierarchy
+between primary, secondary, and low-emphasis actions.
+
+## Reference implementation
+See `components/ui/button.tsx`.

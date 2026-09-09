@@ -1,0 +1,20 @@
+---
+description: Menu component behavior and responsive states
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [menu, navigation, sidebar, component, ui]
+---
+
+# Menu
+
+## Rules
+
+- The menu must have two states: open and closed.
+- Open menu: display the icons and labels.
+- Closed menu: collapse the menu into a vertical bar showing only the icons of all options.
+- Use a vertical sidebar with a blue background matching the primary color of the design system.
+- Use white text and icons.
+- The active item must be visually distinguished by a slightly lighter background.
+- Use slightly rounded corners for the navigation items.
+- See `components/layout/side-nav.tsx`.

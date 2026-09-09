@@ -1,0 +1,18 @@
+---
+description: UI copy rules — all user-facing text in French, intuitive structure over redundant explanatory copy
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: false
+priority: medium
+tags: [copy, text, label, error, empty-state, language, french]
+---
+
+# UI Copy
+
+- All user-facing text is in French (the app's language): page titles, menu
+  items, labels, buttons, placeholders, helper texts, toasts, empty states and
+  error messages. Never generate English user-facing copy.
+- Use direct, consistent vocabulary adapted to the user's level.
+- Describe errors with the cause and the possible action to resolve them.
+- Give empty states a short explanation and a useful next action.
+- Prefer precise action labels over generic wording.
+

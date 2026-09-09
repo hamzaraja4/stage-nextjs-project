@@ -1,0 +1,39 @@
+---
+description: Select with search component and usage
+globs: components/**/*.tsx, app/**/*.tsx
+alwaysApply: false
+priority: high
+tags: [select, dropdown, search, form, field, ui, component]
+---
+
+# Select with Search
+
+### 1. Single selection
+
+The single-select component must follow a simple, clear and compact design:
+
+- The field displays the currently selected value with a chevron indicating that it can be opened.
+- On click, a dropdown menu opens directly below the field.
+- The menu has a distinct, clean and readable surface.
+- Each option is displayed on a separate line with consistent alignment.
+- The selected option is identifiable by a check icon (✓) placed on the left.
+
+### 2. Multiple selection
+
+- The multiple selection uses the same visual language as the single selection.
+- Each option has a square selection checkbox on the left.
+- The box is empty when an option is not selected and checked when it is.
+- Several options can be selected simultaneously.
+
+### 3. Selection with search
+
+For lists containing many options, the menu must include a search bar.
+
+- The search bar is integrated at the top of the menu, above the list of options.
+- The input dynamically filters the displayed options.
+- Only the options matching the search are displayed.
+- If no result matches, show an explicit empty state.
+- The search must work with both single selection and multiple selection.
+
+## Reference implementation
+See `components/ui/select.tsx`.
