@@ -1,9 +1,7 @@
 "use client";
 
-
 import { usePathname, useRouter } from "next/navigation";
 import { ClickableButton, Icon } from "@/components/ui";
-
 
 const HEADER_META: Record<string, { title: string; description?: string }> = {
   "/": {
@@ -51,19 +49,9 @@ const HEADER_META: Record<string, { title: string; description?: string }> = {
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-
-  const meta =
-    HEADER_META[pathname] ?? {
-      title: "HIS-Catering",
-      description: "Système de Restauration Hospitalière & Sécurité Alimentaire",
-    };
-
-  const handleRefresh = () => {
-    router.refresh();
-  };
-
-  const handleBack = () => {
-    router.back();
+  const meta = HEADER_META[pathname] ?? {
+    title: "HIS-Catering",
+    description: "Système de Restauration Hospitalière & Sécurité Alimentaire",
   };
 
   return (
@@ -71,7 +59,7 @@ export default function Header() {
       <div className="flex min-w-0 items-center gap-inline">
         <ClickableButton
           type="button"
-          onClick={handleBack}
+          onClick={() => router.back()}
           variant="ghost"
           aria-label="Revenir à la page précédente"
           title="Page précédente"
@@ -90,17 +78,15 @@ export default function Header() {
           )}
         </div>
       </div>
-      <div className="flex items-center gap-inline">
-        <ClickableButton
-          type="button"
-          onClick={handleRefresh}
-          variant="secondary"
-          size="sm"
-        >
-          <Icon name="RefreshCw" size="small" aria-hidden="true" />
-          Actualiser
-        </ClickableButton>
-      </div>
+      <ClickableButton
+        type="button"
+        onClick={() => router.refresh()}
+        variant="secondary"
+        size="sm"
+      >
+        <Icon name="RefreshCw" size="small" aria-hidden="true" />
+        Actualiser
+      </ClickableButton>
     </header>
   );
 }
