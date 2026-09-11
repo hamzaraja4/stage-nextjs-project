@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { CONTROL_LEVELS } from "../../data/mockAuditData";
 
 export const ControlLevelsCard: React.FC = () => {

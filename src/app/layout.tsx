@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
-import { AJeunAlertStrip } from "@/components/common/AJeunAlertStrip";
+
+import Header from '@/components/Header';
+import AJeunAlertStrip from '@/components/AJeunAlertStrip';
+
+
 import { QRPreviewModal } from "@/components/common/QRPreviewModal";
 import { MiseAJeunModal } from "@/components/common/MiseAJeunModal";
 import { ToastProvider } from "@/context/ToastContext";

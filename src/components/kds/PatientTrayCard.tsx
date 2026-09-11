@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { PatientTrayItem } from "../../types/kds";
 
 interface PatientTrayCardProps {

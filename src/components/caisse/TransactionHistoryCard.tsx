@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { MOCK_TRANSACTIONS } from "../../data/mockCaisseData";
 
 export const TransactionHistoryCard: React.FC = () => {

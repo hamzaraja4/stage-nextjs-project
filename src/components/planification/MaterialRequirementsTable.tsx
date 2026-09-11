@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { MOCK_MATERIAL_REQUIREMENTS } from "../../data/mockPlanificationData";
 
 export const MaterialRequirementsTable: React.FC = () => {

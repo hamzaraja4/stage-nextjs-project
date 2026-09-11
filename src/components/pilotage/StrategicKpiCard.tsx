@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { StrategicKpiItem } from "../../types/pilotage";
 
 interface StrategicKpiCardProps {

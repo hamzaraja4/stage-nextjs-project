@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { MOCK_STOCK_KPIS } from "../../data/mockStocksData";
 
 export const StockKpiGrid: React.FC = () => {

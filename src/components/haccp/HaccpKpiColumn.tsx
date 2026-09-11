@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 
 export const HaccpKpiColumn: React.FC = () => {
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { MOCK_SAMPLE_MEALS } from "../../data/mockHaccpData";
 
 export const SampleMealsTable: React.FC = () => {

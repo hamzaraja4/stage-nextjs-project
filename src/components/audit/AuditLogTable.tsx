@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { AUDIT_LOG_ENTRIES } from "../../data/mockAuditData";
 
 export const AuditLogTable: React.FC = () => {

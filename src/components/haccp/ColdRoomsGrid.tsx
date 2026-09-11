@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { MOCK_COLD_ROOMS } from "../../data/mockHaccpData";
 
 export const ColdRoomsGrid: React.FC = () => {

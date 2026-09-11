@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 
 export const KdsKpiGrid: React.FC = () => {
   return (

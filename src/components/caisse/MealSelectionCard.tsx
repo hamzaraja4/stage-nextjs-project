@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "../ui/Icon";
+import { Icon } from "../ui/icon";
 import { MOCK_MEAL_ITEMS } from "../../data/mockCaisseData";
 
 export const MealSelectionCard: React.FC = () => {
